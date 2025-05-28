@@ -854,12 +854,17 @@ classdef PTrackerDashboard < applify.DashBoard & applify.mixin.UserSettings
             x0 = position(1);
             y0 = position(2);
             
+            % Todo: Expost this from a setting
+            %fprintf('Original coordinates: x=%.2f, y=%.2f\n', x0, y0)
+            
             if obj.settings.Configuration.rotateImages
                 [xCoords, yCoords] = ptracker.rotateCoordinates([xCoords, yCoords], obj.settings, -1);
                 [x0, y0] = ptracker.rotateCoordinates([x0, y0], obj.settings, -1);
             end
             
-            
+            % Todo: Expost this from a setting
+            %fprintf('Rotated coordinates: x=%.2f, y=%.2f\n', x0, y0)
+
             if isempty(obj.hPupilCircle)
                 obj.hPupilCircle = plot(obj.AppModules(1).Axes, xCoords, yCoords, 'w');
                 obj.hPupilCircle.LineWidth = 2;
@@ -1102,7 +1107,7 @@ classdef PTrackerDashboard < applify.DashBoard & applify.mixin.UserSettings
             % Make sure rotated coordinates are included if eye is rotated
             if obj.settings.Configuration.thetaEye ~= 0 && ...
                 ~isfield(obj.PupilData, 'CenterRotated')
-                obj.PupilData = ptracker.rotateResults(obj.PupilData, obj.settings);
+                obj.PupilData = ptracker.rotateResults(obj.PupilData, obj.settings, -1); % Todo: Why does the direction need to be -1
             end
             
             % Add options to pupildata
