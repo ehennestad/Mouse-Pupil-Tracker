@@ -390,6 +390,8 @@ classdef PTrackerDashboard < applify.DashBoard & applify.mixin.UserSettings
                 case 'cropImage'
                    obj.cropImage() 
                     
+                case 'markPupilFootprint'
+                    obj.markPupilFootprint()
                     
                 case 'selectPupil'
                     obj.waitForMousePress = true;
@@ -708,10 +710,14 @@ classdef PTrackerDashboard < applify.DashBoard & applify.mixin.UserSettings
             end
             
             % Create a rectangle for cropping the image.
-            hImviewer.uiwidgets.msgBox.displayMessage('Crop Image, Press Enter to Finish', 2);
+            hImviewer.uiwidgets.msgBox.displayMessage('Crop Image, Press Enter to Finish, Escape to cancel', 2);
             
             rccInit = obj.settings.Configuration.cropCoordinates;
             rcc = hImviewer.selectRectangularRoi(rccInit);
+
+            if isempty(rcc)
+                return
+            end
 
             % rcc = [ min([xCoords, yCoords]), range([xCoords, yCoords]) ];
             obj.settings.Configuration.cropCoordinates = rcc;
@@ -751,6 +757,53 @@ classdef PTrackerDashboard < applify.DashBoard & applify.mixin.UserSettings
             end
             
             obj.hCropBox = h;
+                
+        end
+        
+        function markPupilFootprint(obj)
+            
+            hImviewer = obj.AppModules(1);
+            
+            % Check if images are rotated
+            if obj.settings.Configuration.rotateImages
+                hImviewer.displayMessage('Cannot mark footprint when image is rotated', [], 2);
+                return
+            end
+            
+            % Show message
+            hImviewer.uiwidgets.msgBox.displayMessage('Draw a circle around the pupil region. Press Enter to confirm, Escape to cancel', 3);
+            
+            % Delegate getting coords to imviewer app
+            % Use selectCircularRoi if available, otherwise use selectRectangularRoi and convert to circle
+            if ismethod(hImviewer, 'selectCircularRoi')
+                coords = hImviewer.selectCircularRoi();
+            else
+                % Use rectangular ROI and convert to circle
+                rectCoords = hImviewer.selectRectangularRoi([]);
+                if ~isempty(rectCoords)
+                    % Convert rectangle to circle: center and radius
+                    % rectCoords = [x, y, width, height]
+                    centerX = rectCoords(1) + rectCoords(3)/2;
+                    centerY = rectCoords(2) + rectCoords(4)/2;
+                    radius = mean([rectCoords(3), rectCoords(4)]) / 2;
+                    coords = [centerX, centerY, radius];
+                else
+                    coords = [];
+                end
+            end
+            
+            % If coords are empty, return (user cancelled)
+            if isempty(coords)
+                return
+            end
+            
+            % Make the update to settings
+            obj.settings.Configuration.pupilFootprintCenter = coords(1:2);
+            obj.settings.Configuration.pupilFootprintRadius = coords(3);
+            
+            % Display confirmation message
+            hImviewer.displayMessage(sprintf('Pupil footprint saved: Center=(%.1f, %.1f), Radius=%.1f', ...
+                coords(1), coords(2), coords(3)), [], 2);
                 
         end
         
