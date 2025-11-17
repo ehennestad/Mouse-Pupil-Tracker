@@ -59,6 +59,9 @@ function P = getDefaultSettings()
     P.TrackerOptions.imclose = 5;
     P.TrackerOptions.imclose_ = struct('type', 'slider', 'args', {{'Min', 1, 'Max', 10, 'nTicks', 10, 'TooltipPrecision', 0}});
 
+    P.TrackerOptions.minContrast = 0.15;
+    P.TrackerOptions.minContrast_ = struct('type', 'slider', 'args', {{'Min', 0, 'Max', 0.5, 'nTicks', 51, 'TooltipPrecision', 2, 'TooltipUnits', 'ratio'}});
+
     P.TrackerOptions.showBinarizedImage = false;
     
     P.TrackerOptions.outlineMethod = 'Detect Boundary';

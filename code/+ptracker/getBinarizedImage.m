@@ -1,5 +1,8 @@
 function BW = getBinarizedImage(IM, options)
 
+    % Store original image for contrast check
+    IM_original = IM;
+    
     % Calculate threshold based on percentile level
     prctLevel = options.TrackerOptions.threshold;
     T = prctile(IM(:), prctLevel);
@@ -82,6 +85,38 @@ function BW = getBinarizedImage(IM, options)
         IND = sub2ind(size(BW), pupilCenter(2), pupilCenter(1));
         isMatch = cellfun(@(c) ismember(IND,c), CC.PixelIdxList);
         BW(cat(1, CC.PixelIdxList{~isMatch} )) = 0;
+    end
+
+    % Check contrast to detect occlusion
+    if options.TrackerOptions.minContrast > 0 && any(BW(:))
+        % Calculate mean intensity in pupil region and surrounding area
+        pupilMask = BW;
+        
+        % Create a dilated mask for the surrounding region
+        se = strel('disk', round(5)); % 5 pixel border around pupil
+        surroundMask = imdilate(pupilMask, se) & ~pupilMask;
+        
+        % If there's not enough surrounding region, skip contrast check
+        if sum(surroundMask(:)) > 10
+            % Use original uncropped image for contrast check
+            meanPupil = mean(IM_original(pupilMask));
+            meanSurround = mean(IM_original(surroundMask));
+            
+            % Calculate contrast ratio (normalized by surround to handle brightness changes)
+            % For dark pupil: surround should be brighter
+            % For bright pupil: surround should be darker
+            switch options.Configuration.pupilPolarity
+                case 'dark'
+                    contrast = (meanSurround - meanPupil) / meanSurround;
+                case 'bright'
+                    contrast = (meanPupil - meanSurround) / meanPupil;
+            end
+            
+            % If contrast is too low, reject detection (likely occluded)
+            if contrast < options.TrackerOptions.minContrast
+                BW(:) = false; % Clear the detection
+            end
+        end
     end
 
     % Fill gaps in binary component.
