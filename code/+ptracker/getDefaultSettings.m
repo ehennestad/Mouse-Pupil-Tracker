@@ -14,6 +14,9 @@ function P = getDefaultSettings()
     P.Configuration.selectPupil = false;
     P.Configuration.selectPupil_ = struct('type', 'button', 'args', {{'String', 'Click to Select Pupil'}});
 
+    P.Configuration.markPupilFootprint = false;
+    P.Configuration.markPupilFootprint_ = struct('type', 'button', 'args', {{'String', 'Mark Pupil Footprint'}});
+
     P.Configuration.markCornersOfEye = false;
     P.Configuration.markCornersOfEye_ = struct('type', 'togglebutton', 'args', {{'String', 'Mark Corners of Eye'}});
 
@@ -27,6 +30,10 @@ function P = getDefaultSettings()
     P.Configuration.thetaEye_ = 'internal';    
     P.Configuration.centerPos = [nan, nan];
     P.Configuration.centerPos_ = 'internal';
+    P.Configuration.pupilFootprintCenter = [nan, nan];
+    P.Configuration.pupilFootprintCenter_ = 'internal';
+    P.Configuration.pupilFootprintRadius = nan;
+    P.Configuration.pupilFootprintRadius_ = 'internal';
     P.Configuration.eyeCoordinates = [nan, nan];
     P.Configuration.eyeCoordinates_ = 'internal';
     P.Configuration.imageSizeXY = [];
